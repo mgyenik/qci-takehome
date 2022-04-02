@@ -18,7 +18,7 @@ following:
 ...$ source takehome-env/bin/activate
 
 # Install dependencies into virtualenv with pip
-(takehome-env)...$ python3 -m pip install -r requirements.txt 
+(takehome-env) ...$ python3 -m pip install -r requirements.txt 
 ```
 
 That should be all that's needed to run the project!
@@ -27,8 +27,8 @@ That should be all that's needed to run the project!
 The project comes with a simple `run.sh` script which will run both the server
 and sender using sane default arguments. Files are created in `/tmp`, and
 messages are printed to stdout instead of logged to a file. A succesful run will
-print message from both the sender and the server, and terminate gracefully like
-so:
+print messages from both the sender and the server, and terminate gracefully
+like so:
 
 ```shell
 (takehome-env) ...$ sh run.sh 
