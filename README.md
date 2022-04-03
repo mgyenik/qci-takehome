@@ -9,21 +9,28 @@ probably any version of aiohttp through pip and skip this.
 Using python's built in pip and virtualenv requires __python version 3.4 or
 later__.
 
-To create a virtualenv and install the dependencies into it using pip, run the
-following:
+To clone the project in the current directory, create a virtualenv and install
+the dependencies into it using pip, run the following:
 
 ```shell
+# Clone the project in your current working directory
+$ git clone https://github.com/mgyenik/qci-takehome.git
+$ cd qci-takehome/
+
 # Create and activate virtualenv
-...$ python3 -m venv takehome-env
-...$ source takehome-env/bin/activate
+$ python3 -m venv takehome-env
+$ source takehome-env/bin/activate
 
 # Install dependencies into virtualenv with pip
-(takehome-env) ...$ python3 -m pip install -r requirements.txt 
+(takehome-env) $ python3 -m pip install -r requirements.txt 
 ```
 
 That should be all that's needed to run the project!
 
 ## Running
+The project is composed of a sender process and a server process to recieve from
+the sender, in `sender.py` and `server.py` respectively.
+
 The project comes with a simple `run.sh` script which will run both the server
 and sender using sane default arguments. Files are created in `/tmp`, and
 messages are printed to stdout instead of logged to a file. A succesful run will
@@ -31,7 +38,7 @@ print messages from both the sender and the server, and terminate gracefully
 like so:
 
 ```shell
-(takehome-env) ...$ sh run.sh 
+(takehome-env) $ sh run.sh 
 ======== Running on http://127.0.0.1:8000 ========
 (Press CTRL+C to quit)
 [SENDER][INFO][2022-04-01 18:23:02,025] - Generated new blob of length 318116
@@ -65,13 +72,14 @@ lots of logs
 I implemented some extra stuff that I thought was a cool demo of the chosen
 libraries as well, such as optionally logging to files and integrity
 verification using SHA256 hashes. If you'd like to check out the extra options,
-it's easy to run the server and sender separately and communicate! Here's an
-example of sending only 15 files, optionally corrupting the binary file payload
-after checksum computation. First start the server (just use ctrl+c to stop it
-when you are done):
+it's easy to run the server and sender separately and communicate!
+
+Here's an example of sending only 15 files, optionally corrupting the binary
+file payload after checksum computation. First start the server (just use ctrl+c
+to stop it when you are done):
 
 ```shell
-(takehome-env) ...$ python3 server.py
+(takehome-env) $ python3 server.py
 ======== Running on http://127.0.0.1:8000 ========
 (Press CTRL+C to quit)
 ```
@@ -81,8 +89,8 @@ additional args and see the new options in action:
 
 ```shell
 # In a new shell
-...$ source takehome-env/bin/activate
-(takehome-env) ...$ python3 sender.py --inject-bad-checksums -n 15
+$ source takehome-env/bin/activate
+(takehome-env) $ python3 sender.py --inject-bad-checksums -n 15
 [SENDER][INFO][2022-04-01 19:35:46,704] - Generated new blob of length 849213
 [SENDER][INFO][2022-04-01 19:35:46,706] - W0 wrote binary file to /tmp/sender-90a29a8b-5f65-4273-be64-b2770fe9bd58.bin
 [SENDER][INFO][2022-04-01 19:35:46,714] - W0 successfully sent blob and received response Successfully received the 849213 byte file
@@ -127,15 +135,15 @@ the randomly generated bin files from `/tmp` (or another location if you
 specified a different `-d`):
 
 ```shell
-(takehome-env) ...$ rm /tmp/*.bin
+(takehome-env) $ rm /tmp/*.bin
 ```
 
 You'll also want to deactivate and delete the virtual environment, which will
 clean up the dependencies installed earlier:
 
 ```shell
-(takehome-env) ...$ deactivate
-...$ rm -r takehome-env/
+(takehome-env) $ deactivate
+$ rm -r takehome-env/
 ```
 
 # Assignment
@@ -156,42 +164,47 @@ misunderstood the requirements, but I think this project largely does what was
 asked.
 
 Below are some deviations/interpretations and the justifications:
-* __duration requirement in (2)__ - the assignment says to create 100 files over
+* __duration requirement in (2)__ - The assignment says to create 100 files over
   the course of 10 minutes, but the maximum time between subsequent files is
-  listed as 1s. Even using the maximum duration of 1s for every one of the 100
-  files, that means the applications will run for a maximum of 100s (plus the
+  capped at 1s. Even using the maximum duration of 1s for every one of the 100
+  files, that means the project will run for a maximum of 100s (plus the
   remaining transfer time of the last few in flight files). This is far less
-  than the specified runtime of 10m (600s). I took this to mean that the maximum
-  runtime should be 10m, which will always be satisfied, so I ignored the 10m
-  part of the assignment.
-* __two servers requirement in (1)__ - the assigment specifies creating two
+  than the specified runtime of 10m (600s). I interpreted this to mean that the
+  maximum runtime should be 10m, which will always be satisfied, so I did not do
+  any special handling of a 10m timeout.
+* __two servers requirement in (1)__ - The assigment specifies creating two
   servers, but then specifies that HTTP should be used for one to "transfer"
   files to the other, which implies that one is only making requests as a client
-  to the other. The process doing the sending isn't really serving anything,
-  since no bidirectional transfers are being done. So I ignored this requirement
-  and instead of creating two servers, I created two processes - one client
-  process and one server process.
-* __file contents__ - the assignment involves creating binary files of random
+  to the other. The sender isn't really serving anything, since no bidirectional
+  transfers are being done. So I interpreted this requirement as creating two
+  processes rather than two servers - one client process and one server process.
+* __file contents__ - The assignment involves creating binary files of random
   sizes in a certain range, at random time intervals. It specifies that the
   files should be binary files and encoded int16, but it never actually
   specifies what the file contents should be. Maybe all 0's, or all 0x0042. I
   chose to generate random contents since it seemed to fit with the theme of
   randomizing the other parameters.
 * __file encoding__ - the assignment specifies that the created files must be
-  "encoded int16", but as far as I can tell, this requirement does nothing and
-  should be ignored. The file encoding only matters if the file contents are
-  being used somehow. For example, consider a binary file that is 4 bytes long
-  containing the bytes `{0x41, 0x42, 0x43, 0x44}`. The 4 bytes can be read,
-  written, transferred over HTTP, etc. without ever considering whether they are
-  2 signed int16s, or 4 ASCII chars, or anything else. Since the assignment
-  never asks to print the list of int16 numbers or anything remotely like that,
-  it doesn't matter what the encoding is. There really is no encoding, since
-  there is never a time when the files are used.
+  "encoded int16". But as far as I can tell the encoding of the binary is never
+  needed since the binary is never decoded, so I ended up not using this
+  requirement into the project. The file encoding only matters if the file
+  contents are being used somehow. For example, consider a binary file that is 4
+  bytes long containing the bytes `{0x41, 0x42, 0x43, 0x44}`. The 4 bytes can be
+  read, written, transferred over HTTP, etc. without ever considering whether
+  they are 2 signed int16s, or 4 ASCII chars, etc. Since the assignment does not
+  contain any tasks where the binary must be decoded into ints, floats, or
+  another a form (such as print the binary as a list of int16 numbers), it
+  doesn't matter what the encoding is.
 * __file size__ - The assignment specifies the random file sizes as in the range
   "1kb to 1Mb". Technically the lower case 'b' in 'kb' and 'Mb' indicates
   kilobits and megabits, but it is unusual to talk about files in terms of
   megabits, so I interpreted this to be kilobytes and megabytes instead.
-* __files requirement__ - the assignment asks to create binary files and send
+* __files requirement__ - The assignment asks to create binary files and send
   them. Binary can be generated in one process and sent to another without ever
   being a "file", so I interpreted this requirement as saving the binary to a
   file in both the sender and server processes.
+*__asyncio__ - the assignment mandates the use of asyncio but not any particular
+  patterns such as one coroutine per sent file, a pool of worker coroutines,
+  etc. I chose to use a worker pool model where one task generates data and a
+  fixed size pool of workers sends and saves the generated data, synchronized
+  using a queue.
