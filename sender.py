@@ -89,6 +89,7 @@ async def send_blob(name, blob, config):
             else:
                 logging.info(f'{name} encountered status {response.status} sending blob')
 
+
 # The send worker task runs indefinitely until cancelled, processing one blob
 # from the queue at a time.
 async def send_worker(name, queue, config):
@@ -100,6 +101,7 @@ async def send_worker(name, queue, config):
     except asyncio.CancelledError:
         logging.info(f'{name} done!')
 
+
 # The generate worker will generate the blobs and put them in the queue, with a
 # random sleep between them.
 async def generate_worker(num_files, queue):
@@ -110,6 +112,7 @@ async def generate_worker(num_files, queue):
         sleep_time = random.uniform(0.001, 1.0)
         await asyncio.sleep(sleep_time)
     logging.info(f'Generator task done!')
+
 
 # The application handles generating and sending random files using a single
 # data generator task and a multiple worker tasks that communicate via a queue.
@@ -171,7 +174,7 @@ if __name__ == '__main__':
     parser.add_argument('--disable-stdout-logging', action='store_true',
                         help='Disable logging to stdout')
     parser.add_argument('--inject-bad-checksums', action='store_true',
-                        help='Purposefully send bad checksums 10% of the time for testing')
+                        help='Purposefully send bad checksums 10 percent of the time for testing')
     args = parser.parse_args()
 
     # Configure the logging according to the command line args. Logging to
